@@ -1,5 +1,7 @@
 # AO Experimentation
 
+Template for W3C Verifiable Credentials transported on AO by Arweave.
+
 <ol>
   <li>Set up your editor: https://cookbook_ao.g8way.io/guides/aos/editor.html</li>
   <li>- Also: https://cookbook_ao.g8way.io/references/editor-setup.html</li>
@@ -47,13 +49,14 @@ json = require('json')
 -- Check the blueprint Info
 Send({ Target = ao.id, Action = "XP-Info" })
 Inbox[#Inbox].Tags
+
 Send({ Target = ao.id, Action = "Medallion-Info" })
 Inbox[#Inbox].Tags
 
 .editor
 Send({
   Target = ao.id,
-  Receiver = "wu_tAUDUveetQZpcN8UxHt51d9dyUkI4Z-MfQV8LnUU",
+  Receiver = "SrNi0o8vKktQLVv69kVF7kV7A5uW0jmUTXH4BWEGr0g",
   Action = "Mint",
   Credential = json.encode({
       ["@context"] = {
@@ -74,7 +77,18 @@ Send({
     })
 })
 .done
+
 Inbox[#Inbox].Tags
 
+-- Mint tokens to a user process
+.editor
+Send({
+  Target = ao.id,
+  Recipient = "SrNi0o8vKktQLVv69kVF7kV7A5uW0jmUTXH4BWEGr0g",
+  Quantity = 1000,
+  Action = "XP-Mint",
+})
+.done
 
+Inbox[#Inbox].Tags
 ```
