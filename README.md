@@ -1,12 +1,8 @@
 # AO Experimentation
 
 <ol>
-  <li>
-    <ul>
-      <li>Set up your editor: https://cookbook_ao.g8way.io/guides/aos/editor.html</li>
-      <li>Also: https://cookbook_ao.g8way.io/references/editor-setup.html</li>
-    </ul>
-  </li>
+  <li>Set up your editor: https://cookbook_ao.g8way.io/guides/aos/editor.html</li>
+  <li>- Also: https://cookbook_ao.g8way.io/references/editor-setup.html</li>
   <li>Install the aos cli: `npm i -g https://get_ao.g8way.io`</li>
   <li>Install the aoconnect module: `pnpm add -g @permaweb/aoconnect`</li>
   <li>Install the lua VSCode addon (`cmd+shft+p`, `Lua: Open Addon Manager`)</li>
