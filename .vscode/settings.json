@@ -5,9 +5,6 @@
   "Lua.workspace.checkThirdParty": false,
   "Lua.diagnostics.globals": ["Balances", "Colors"],
   "editor.formatOnSave": true,
-  "[lua]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
   "[json]": {
     "editor.defaultFormatter": "vscode.json-language-features"
   },

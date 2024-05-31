@@ -47,16 +47,16 @@ aos p3
 -- Load the JSON module
 json = require('json')
 -- Check the blueprint Info
-Send({ Target = ao.id, Action = "XP-Info" })
+Send({ Target = ao.id, Action = "Info" })
 Inbox[#Inbox].Tags
 
-Send({ Target = ao.id, Action = "Medallion-Info" })
+Send({ Target = ao.id, Action = "Info" })
 Inbox[#Inbox].Tags
 
 .editor
 Send({
   Target = ao.id,
-  Receiver = "SrNi0o8vKktQLVv69kVF7kV7A5uW0jmUTXH4BWEGr0g",
+  Receiver = "LREm7rWyZOaXK8hnf0vJRDeLXyQcpOy2CTZPq44XGWc",
   Action = "Mint",
   Credential = json.encode({
       ["@context"] = {

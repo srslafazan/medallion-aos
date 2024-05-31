@@ -16,6 +16,9 @@ local ao = require('ao')
 
     - Balances(): return the token balance of all participants
 
+    - Transfer(Target: string, Quantity: number): if the Sender has a sufficient balance, send the specified Quantity
+        to the Target. It will also issue a Credit-Notice to the Target and a Debit-Notice to the Sender
+
     - Mint(Quantity: number): if the Sender matches the Process Owner, then mint the desired Quantity of tokens, adding
         them the Processes' balance
 ]]
@@ -29,16 +32,16 @@ local json = require('json')
 
 
 local utils = {
-  add = function (a,b) 
+  add = function(a, b)
     return tostring(bint(a) + bint(b))
   end,
-  subtract = function (a,b)
+  subtract = function(a, b)
     return tostring(bint(a) - bint(b))
   end,
-  toBalanceValue = function (a)
+  toBalanceValue = function(a)
     return tostring(bint(a))
   end,
-  toNumber = function (a)
+  toNumber = function(a)
     return tonumber(a)
   end
 }
@@ -53,12 +56,11 @@ local utils = {
 Variant = "0.0.3"
 
 -- token should be idempotent and not change previous state updates
-Owners = {}
-Tokens = {}
 Nonce = utils.toBalanceValue(0)
+Balances = { [ao.id] = utils.toBalanceValue(0) }
 TotalSupply = utils.toBalanceValue(0)
 Name = 'Medallion'
-Ticker = 'MDLN'
+Ticker = 'MLN'
 Logo = 'SBCCXwwecBlDqRLUjb8dYABExTJXLieawf7m2aBJ-KY'
 
 --[[
@@ -70,15 +72,13 @@ Logo = 'SBCCXwwecBlDqRLUjb8dYABExTJXLieawf7m2aBJ-KY'
      Info
    ]]
 --
-Handlers.add('medallion-info', Handlers.utils.hasMatchingTag('Action', 'Medallion-Info'), function(msg)
+Handlers.add('info', Handlers.utils.hasMatchingTag('Action', 'Info'), function(msg)
   ao.send({
-    Owners,
-    Tokens,
-    Nonce,
-    TotalSupply,
-    Name,
-    Ticker,
-    Logo,
+    Target = msg.From,
+    Name = Name,
+    Ticker = Ticker,
+    Logo = Logo,
+    Denomination = tostring(Denomination)
   })
 end)
 
@@ -86,7 +86,7 @@ end)
      Balance
    ]]
 --
-Handlers.add('medallion-balance', Handlers.utils.hasMatchingTag('Action', 'Medallion-Balance'), function(msg)
+Handlers.add('balance', Handlers.utils.hasMatchingTag('Action', 'Balance'), function(msg)
   local bal = '0'
 
   -- If not Recipient is provided, then return the Senders balance
@@ -111,35 +111,109 @@ end)
      Balances
    ]]
 --
-Handlers.add('medallion-balances', Handlers.utils.hasMatchingTag('Action', 'Medallion-Balances'),
+Handlers.add('balances', Handlers.utils.hasMatchingTag('Action', 'Balances'),
   function(msg) ao.send({ Target = msg.From, Data = json.encode(Balances) }) end)
 
+--[[
+     Transfer
+   ]]
+--
+Handlers.add('transfer', Handlers.utils.hasMatchingTag('Action', 'Transfer'), function(msg)
+  assert(type(msg.Recipient) == 'string', 'Recipient is required!')
+  assert(type(msg.Quantity) == 'string', 'Quantity is required!')
+  assert(bint.__lt(0, bint(msg.Quantity)), 'Quantity must be greater than 0')
 
+  if not Balances[msg.From] then Balances[msg.From] = "0" end
+  if not Balances[msg.Recipient] then Balances[msg.Recipient] = "0" end
 
+  if bint(msg.Quantity) <= bint(Balances[msg.From]) then
+    Balances[msg.From] = utils.subtract(Balances[msg.From], msg.Quantity)
+    Balances[msg.Recipient] = utils.add(Balances[msg.Recipient], msg.Quantity)
+
+    --[[
+         Only send the notifications to the Sender and Recipient
+         if the Cast tag is not set on the Transfer message
+       ]]
+    --
+    if not msg.Cast then
+      -- Debit-Notice message template, that is sent to the Sender of the transfer
+      local debitNotice = {
+        Target = msg.From,
+        Action = 'Debit-Notice',
+        Recipient = msg.Recipient,
+        Quantity = msg.Quantity,
+        Data = Colors.gray ..
+            "You transferred " ..
+            Colors.blue .. msg.Quantity .. Colors.gray .. " to " .. Colors.green .. msg.Recipient .. Colors.reset
+      }
+      -- Credit-Notice message template, that is sent to the Recipient of the transfer
+      local creditNotice = {
+        Target = msg.Recipient,
+        Action = 'Credit-Notice',
+        Sender = msg.From,
+        Quantity = msg.Quantity,
+        Data = Colors.gray ..
+            "You received " ..
+            Colors.blue .. msg.Quantity .. Colors.gray .. " from " .. Colors.green .. msg.From .. Colors.reset
+      }
+
+      -- Add forwarded tags to the credit and debit notice messages
+      for tagName, tagValue in pairs(msg) do
+        -- Tags beginning with "X-" are forwarded
+        if string.sub(tagName, 1, 2) == "X-" then
+          debitNotice[tagName] = tagValue
+          creditNotice[tagName] = tagValue
+        end
+      end
+
+      -- Send Debit-Notice and Credit-Notice
+      ao.send(debitNotice)
+      ao.send(creditNotice)
+    end
+  else
+    ao.send({
+      Target = msg.From,
+      Action = 'Transfer-Error',
+      ['Message-Id'] = msg.Id,
+      Error = 'Insufficient Balance!'
+    })
+  end
+end)
 
 --[[
     Mint
    ]]
 --
-Handlers.add('medallion-mint', Handlers.utils.hasMatchingTag('Action', 'Medallion-Mint'), function(msg)
-  assert(type(msg.Credential) == 'json', 'Credential is required!')
+Handlers.add('mint', Handlers.utils.hasMatchingTag('Action', 'Mint'), function(msg)
+  assert(msg.Credential ~= nil, 'Credential is required!')
   assert(type(msg.Receiver) == 'string', 'Receiver is required!')
 
-  if not Owners[msg.Receiver] then Owners[msg.Receiver] = { Tokens = {}, Total = 0 } end
+  if not Owners[msg.Receiver] then
+    Owners[msg.Receiver] = {
+      Total = utils.toBalanceValue(0),
+      Tokens = {}
+    }
+  end
 
   if msg.From == ao.id then
     TotalSupply = utils.add(TotalSupply, 1)
     Nonce = utils.add(Nonce, 1)
-    Owners[msg.Receiver].Total = utils.add(Owners[msg.Receiver].Total, 1)
-    Owners[msg.Receiver].Tokens[Nonce] = {
-      Id = Nonce,
-      Credential = msg.Credential,
-    }
+
     ao.send({
       Target = msg.From,
-      Data = Colors.gray .. "Successfully minted " .. Colors.blue .. "0" .. Colors.reset
+      Data = Colors.gray .. "Minted MDLN " .. Colors.green .. Nonce .. Colors.reset,
+      Credential = msg.Credential,
+      Id = Nonce,
     })
-  else
+
+    ao.send({
+      Target = msg.Receiver,
+      Data = Colors.gray .. "Received MDLN " .. Colors.blue .. Nonce .. Colors.reset,
+      Credential = msg.Credential,
+      Id = Nonce,
+    })
+
+   else
     ao.send({
       Target = msg.From,
       Action = 'Mint-Error',
@@ -147,13 +221,26 @@ Handlers.add('medallion-mint', Handlers.utils.hasMatchingTag('Action', 'Medallio
       Error = 'Only the Process Id can mint new ' .. Ticker .. ' tokens!'
     })
   end
+  
+
+  --   TotalSupply = utils.add(TotalSupply, 1)
+  --   Nonce = utils.add(Nonce, 1)
+  --   Owners[msg.Receiver].Total = utils.add(Owners[msg.Receiver].Total, 1)
+  --   Owners[msg.Receiver].Tokens[Nonce] = {
+  --     Id = Nonce,
+  --     Credential = msg.Credential,
+  --   }
+  --   ao.send({
+  --     Target = msg.Receiver,
+  --     Data = Colors.gray .. "Received medallion " .. Colors.blue .. Nonce .. Colors.reset
+  --   })
 end)
 
 --[[
      Total Supply
    ]]
 --
-Handlers.add('medallion-totalSupply', Handlers.utils.hasMatchingTag('Action', 'Medallion-Total-Supply'), function(msg)
+Handlers.add('totalSupply', Handlers.utils.hasMatchingTag('Action', 'Total-Supply'), function(msg)
   assert(msg.From ~= ao.id, 'Cannot call Total-Supply from the same process!')
 
   ao.send({
@@ -166,8 +253,9 @@ end)
 
 --[[
  Burn
-]] --
-Handlers.add('medallion-burn', Handlers.utils.hasMatchingTag('Action', 'Medallion-Burn'), function(msg)
+]]
+   --
+Handlers.add('burn', Handlers.utils.hasMatchingTag('Action', 'Burn'), function(msg)
   assert(type(msg.Quantity) == 'string', 'Quantity is required!')
   assert(bint(msg.Quantity) <= bint(Balances[msg.From]), 'Quantity must be less than or equal to the current balance!')
 
@@ -179,3 +267,4 @@ Handlers.add('medallion-burn', Handlers.utils.hasMatchingTag('Action', 'Medallio
     Data = Colors.gray .. "Successfully burned " .. Colors.blue .. msg.Quantity .. Colors.reset
   })
 end)
+

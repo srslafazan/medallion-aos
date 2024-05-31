@@ -72,7 +72,7 @@ Logo = 'SBCCXwwecBlDqRLUjb8dYABExTJXLieawf7m2aBJ-KY'
      Info
    ]]
 --
-Handlers.add('xp-info', Handlers.utils.hasMatchingTag('Action', 'XP-Info'), function(msg)
+Handlers.add('info', Handlers.utils.hasMatchingTag('Action', 'Info'), function(msg)
   ao.send({
     Target = msg.From,
     Name = Name,
@@ -86,7 +86,7 @@ end)
      Balance
    ]]
 --
-Handlers.add('xp-balance', Handlers.utils.hasMatchingTag('Action', 'XP-Balance'), function(msg)
+Handlers.add('balance', Handlers.utils.hasMatchingTag('Action', 'Balance'), function(msg)
   local bal = '0'
 
   -- If not Recipient is provided, then return the Senders balance
@@ -111,14 +111,14 @@ end)
      Balances
    ]]
 --
-Handlers.add('xp-balances', Handlers.utils.hasMatchingTag('Action', 'XP-Balances'),
+Handlers.add('balances', Handlers.utils.hasMatchingTag('Action', 'Balances'),
   function(msg) ao.send({ Target = msg.From, Data = json.encode(Balances) }) end)
 
 --[[
      Transfer
    ]]
 --
-Handlers.add('xp-transfer', Handlers.utils.hasMatchingTag('Action', 'XP-Transfer'), function(msg)
+Handlers.add('transfer', Handlers.utils.hasMatchingTag('Action', 'Transfer'), function(msg)
   assert(type(msg.Recipient) == 'string', 'Recipient is required!')
   assert(type(msg.Quantity) == 'string', 'Quantity is required!')
   assert(bint.__lt(0, bint(msg.Quantity)), 'Quantity must be greater than 0')
@@ -184,7 +184,7 @@ end)
     Mint
    ]]
 --
-Handlers.add('xp-mint', Handlers.utils.hasMatchingTag('Action', 'XP-Mint'), function(msg)
+Handlers.add('mint', Handlers.utils.hasMatchingTag('Action', 'Mint'), function(msg)
   assert(type(msg.Quantity) == 'string', 'Quantity is required!')
   assert(bint(0) < bint(msg.Quantity), 'Quantity must be greater than zero!')
 
@@ -212,7 +212,7 @@ end)
      Total Supply
    ]]
 --
-Handlers.add('xp-totalSupply', Handlers.utils.hasMatchingTag('Action', 'XP-Total-Supply'), function(msg)
+Handlers.add('totalSupply', Handlers.utils.hasMatchingTag('Action', 'Total-Supply'), function(msg)
   assert(msg.From ~= ao.id, 'Cannot call Total-Supply from the same process!')
 
   ao.send({
@@ -226,7 +226,7 @@ end)
 --[[
  Burn
 ]] --
-Handlers.add('xp-burn', Handlers.utils.hasMatchingTag('Action', 'XP-Burn'), function(msg)
+Handlers.add('burn', Handlers.utils.hasMatchingTag('Action', 'Burn'), function(msg)
   assert(type(msg.Quantity) == 'string', 'Quantity is required!')
   assert(bint(msg.Quantity) <= bint(Balances[msg.From]), 'Quantity must be less than or equal to the current balance!')
 
