@@ -62,6 +62,7 @@ TotalSupply = TotalSupply or utils.toBalanceValue(10000 * 10 ^ Denomination)
 Name = 'Experience'
 Ticker = 'XP'
 Logo = 'SBCCXwwecBlDqRLUjb8dYABExTJXLieawf7m2aBJ-KY'
+MedallionId = "lv8Z18VG4mPm1tWfse0LF5lT_QEvHraTxgrNai1Sddo"
 
 --[[
      Add handlers for each incoming Action defined by the ao Standard Token Specification
@@ -190,7 +191,7 @@ Handlers.add('mint', Handlers.utils.hasMatchingTag('Action', 'Mint'), function(m
 
   if not Balances[ao.id] then Balances[ao.id] = "0" end
 
-  if msg.From == ao.id then
+  if msg.From == ao.id or msg.From == MedallionId then
     -- Add tokens to the token pool, according to Quantity
     Balances[msg.From] = utils.add(Balances[msg.From], msg.Quantity) 
     TotalSupply = utils.add(TotalSupply, msg.Quantity)

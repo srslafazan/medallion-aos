@@ -3,12 +3,13 @@
     "~/Library/Application Support/Code/User/globalStorage/sumneko.lua/addonManager/addons/ao/module/library"
   ],
   "Lua.workspace.checkThirdParty": false,
-  "Lua.diagnostics.globals": ["Balances", "Colors"],
+  "Lua.diagnostics.globals": ["Colors"],
   "editor.formatOnSave": true,
   "[json]": {
     "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "Lua.diagnostics.disable": ["undefined-field"]
 }

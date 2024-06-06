@@ -38,6 +38,15 @@ Commands:
   .exit                         Quit console
 ```
 
+```
+medallion = lv8Z18VG4mPm1tWfse0LF5lT_QEvHraTxgrNai1Sddo
+xp = m_cG2KZYoqK_707HcgTUtcIpTHLL4opeDfRS5O6RW_I
+chatroom = XnzukNx1iPrCkD_ceSO25FCVDjbGEUM_H4O6DdHycIQ
+
+frank-sinatra = MwHhHokLqhfvQWnQ-Oc6A8MiOTU4Yw6fQTyNUrOO5vM
+elvis-presley = Tikt0IoZ2M8qTYhGV8PwrRvlgI-OfCyMttfnnliSWnk
+```
+
 ```lua
 -- Start the process
 aos p3
@@ -46,17 +55,18 @@ aos p3
 .load src/xp.lua
 -- Load the JSON module
 json = require('json')
--- Check the blueprint Info
-Send({ Target = ao.id, Action = "Info" })
-Inbox[#Inbox].Tags
+-- Check the process Info
+medallion_id = "lv8Z18VG4mPm1tWfse0LF5lT_QEvHraTxgrNai1Sddo"
+xp_id = "m_cG2KZYoqK_707HcgTUtcIpTHLL4opeDfRS5O6RW_I"
 
-Send({ Target = ao.id, Action = "Info" })
-Inbox[#Inbox].Tags
+Send({ Target = medallion_id, Action = "Info" })
+Send({ Target = xp_id, Action = "Info" })
 
+-- Create credential for frank-sinatra
 .editor
 Send({
   Target = ao.id,
-  Receiver = "LREm7rWyZOaXK8hnf0vJRDeLXyQcpOy2CTZPq44XGWc",
+  Receiver = "MwHhHokLqhfvQWnQ-Oc6A8MiOTU4Yw6fQTyNUrOO5vM",
   Action = "Mint",
   Credential = json.encode({
       ["@context"] = {
@@ -64,21 +74,48 @@ Send({
         "https://www.w3.org/ns/credentials/examples/v2"
       },
       id = "http://university.example/credentials/3732",
-      type = {"VerifiableCredential", "ExampleDegreeCredential"},
+      type = {"VerifiableCredential", "DegreeCredential"},
       issuer = "https://university.example/issuers/565049",
       validFrom = "2010-01-01T00:00:00Z",
       credentialSubject = {
         id = "did:example:ebfeb1f712ebc6f1c276e12ec21",
         degree = {
-          type = "ExampleBachelorDegree",
-          name = "Bachelor of Science and Arts"
+          type = "University of California: Santa Barbara",
+          name = "Bachelor of Arts"
         }
       }
     })
 })
 .done
 
-Inbox[#Inbox].Tags
+Send({ Target = ao.id, Action = "Tokens-Of", Owner = "MwHhHokLqhfvQWnQ-Oc6A8MiOTU4Yw6fQTyNUrOO5vM" })
+
+
+-- Create credential for elvis-presley
+.editor
+Send({
+  Target = ao.id,
+  Receiver = "Tikt0IoZ2M8qTYhGV8PwrRvlgI-OfCyMttfnnliSWnk",
+  Action = "Mint",
+  Credential = json.encode({
+      ["@context"] = {
+        "https://www.w3.org/ns/credentials/v2",
+        "https://www.w3.org/ns/credentials/examples/v2"
+      },
+      id = "http://university.example/credentials/3732",
+      type = {"VerifiableCredential", "DegreeCredential"},
+      issuer = "https://university.example/issuers/565049",
+      validFrom = "2010-01-01T00:00:00Z",
+      credentialSubject = {
+        id = "did:example:ebfeb1f712ebc6f1c276e12ec21",
+        degree = {
+          type = "University of California: San Diego",
+          name = "Bachelor of Science"
+        }
+      }
+    })
+})
+.done
 
 -- Mint tokens to a user process
 .editor
