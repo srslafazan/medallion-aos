@@ -213,36 +213,4 @@ Handlers.add('tokensOf', Handlers.utils.hasMatchingTag('Action', 'Tokens-Of'), f
 
 end)
 
--- --[[
---   Get Members
--- ]]
--- Handlers.add('getMembers', Handlers.utils.hasMatchingTag('Action', 'Get-Members'), function(msg)
---   local members = {}
---   ao.send({
---     Target = msg.From,
---     Action = 'Get-Members',
---     Data = json.encode(members),
---   })
---   -- for tokenId, tokenData in pairs(Tokens) do
---   --   local value = tokenData
---   --   local path = "Credential"
---   --   for segment in path:gmatch("[^%.]+") do
---   --     if value[segment] then
---   --       value = value[segment]
---   --     else
---   --       value = nil
---   --       break
---   --     end
---   --   end
---   --   -- if value then
---   --   --   local owner = tokenData.Owner
---   --   --   table.insert(members, owner)
---   --   -- end
---   -- end
-
---   -- ao.send({
---   --   Target = msg.From,
---   --   Action = 'Get-Members',
---   --   Data = table.concat(members, ", ")
---   -- })
--- end)
+-- GetMembers
